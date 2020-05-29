@@ -21,6 +21,9 @@ variable "instance_name" {
 }
 
 # ! ============ security_group.tf ============
+variable "sg_name" {
+  type = string
+}
 variable "app_port" {
   type = number
 }
