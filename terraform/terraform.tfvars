@@ -10,5 +10,5 @@ instance_name = "hello-terraform"
 # ! ============ security_group.tf ============
 sg_name         = "sg_terraform"
 app_port        = "80"
-key_name        = "ec2key"
-public_key_path = "~/.ssh/ec2key.pub"
+key_name        = "terraformKey"
+public_key_path = "~/.ssh/terraformKey.pub"
