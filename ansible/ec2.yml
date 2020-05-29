@@ -1,0 +1,105 @@
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    key_name: ansibleKey
+    region: us-east-1
+    image: ami-0915e09cc7ceee3ab
+    id: "hello-ansible"
+    security_group: "sg_ansible"
+
+  tasks:
+
+    - name: Facts
+      block:
+
+        - name: Get instances facts
+          ec2_instance_info:
+            region: "{{ region }}"
+          register: result
+
+        - name: Instances ID
+          debug:
+            msg: "ID: {{ item.instance_id }} - State: {{ item.state.name }} - Public IP: {{ item.public_dns_name }}"
+          loop: "{{ result.instances }}"
+
+      tags: always
+
+
+    - name: Provisioning EC2 instances
+      block:
+
+        - name: Upload public key to AWS
+          ec2_key:
+            name: "{{ key_name }}"
+            key_material: "{{ lookup('file', '~/.ssh/{{ key_name }}.pub') }}"
+            region: "{{ region }}"
+
+        - name: Create security group
+          ec2_group:
+            name: "{{ security_group }}"
+            description: "Ansible SG"
+            region: "{{ region }}"
+            rules:
+              - proto: tcp
+                ports:
+                  - 22
+                cidr_ip: 0.0.0.0/0
+                rule_desc: allow all on ssh port, not recommended!
+              - proto: tcp
+                ports:
+                  - 80
+                cidr_ip: 0.0.0.0/0
+                rule_desc: open port 80 to public for Nginx
+            rules_egress:
+              - proto: -1
+                from_port: 0
+                to_port: 0
+                cidr_ip: 0.0.0.0/0
+                rule_desc: allow all outgoing traffic
+          register: security_group_ansible
+
+        - name: Provision instance(s)
+          ec2:
+            key_name: "{{ key_name }}"
+            id: "{{ id }}"
+            group_id: "{{ security_group_ansible.group_id }}"
+            image: "{{ image }}"
+            instance_type: t2.micro
+            region: "{{ region }}"
+            assign_public_ip: true
+            wait: true
+
+      tags: ['never', 'create_ec2'] # https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html
+
+    - name: Configure EC2
+      block:
+
+        - name: Update all packages
+          yum:
+            name: '*'
+            state: latest
+            update_only: yes
+
+        - name: Install docker
+          yum:
+            name: docker
+            state: installed
+
+        - name: Start docker service
+          service:
+            name: docker
+            state: restarted
+
+        - name: Re-create a redis container
+          docker_container:
+            name: hello
+            image: rnginx
+            state: present
+            ports:
+              - "80:80"
+
+      tags: ['never', 'configure_ec2']
