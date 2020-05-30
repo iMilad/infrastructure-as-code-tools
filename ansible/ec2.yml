@@ -15,10 +15,10 @@
 
   tasks:
 
-    - name: Facts
+    - name: EC2 Info
       block:
 
-        - name: Get instances facts - so we can use each time to get info about running instances
+        - name: Get instances info - so we can use each time to get info about running instances
           ec2_instance_info:
             aws_access_key: "{{ aws_access_key_id }}"
             aws_secret_key: "{{ aws_secret_access_key }}"
