@@ -4,11 +4,8 @@
   connection: local
   gather_facts: False
 
-  vars:
-    key_name: ansibleKey
-    image_id: ami-0915e09cc7ceee3ab
-    tag_name: "hello-ansible"
-    security_group: "sg_ansible"
+  vars_files:
+    - variables.yml
 
   tasks:
 
@@ -49,8 +46,17 @@
             security_group: "{{ security_group_ansible.group_id }}"
             image_id: "{{ image_id }}"
             instance_type: t2.micro
-            name: "{{ tag_name }}"
+            name: "{{ ec2_name }}"
           register: ec2
+
+        - name: Add tag to Instance(s)
+          ec2_tag:
+            resource: "{{ item.id }}"
+            state: "present"
+          with_items: "{{ ec2.instances }}"
+          args:
+            tags:
+              Type: ansible
 
       tags: ['never', 'create_ec2'] # https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html
 
@@ -65,7 +71,7 @@
             name: "{{ item.public_dns_name }}"
             groups: nginx
           loop: "{{ result.instances }}"
-          when: item.tags.Name == tag_name and item.state.name == 'running'
+          when: item.tags.Name == ec2_name and item.state.name == 'running'
 
       tags: ['never', 'configure_ec2']
 
