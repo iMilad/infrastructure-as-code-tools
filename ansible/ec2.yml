@@ -3,12 +3,9 @@
 - hosts: localhost
   connection: local
   gather_facts: False
-  vars_files:
-    - keys.yml
 
   vars:
     key_name: ansibleKey
-    region: us-east-1
     image_id: ami-0915e09cc7ceee3ab
     tag_name: "hello-ansible"
     security_group: "sg_ansible"
@@ -29,10 +26,6 @@
 
         - name: Create security group
           ec2_group:
-            aws_access_key: "{{ aws_access_key_id }}"
-            aws_secret_key: "{{ aws_secret_access_key }}"
-            security_token: "{{ aws_session_token }}" # remove it if you do not have session_token
-            region: "{{ region }}"
             name: "{{ security_group }}"
             description: "Ansible SG"
             rules:
@@ -56,10 +49,6 @@
 
         - name: Provision EC2 instance
           ec2_instance:
-            aws_access_key: "{{ aws_access_key_id }}"
-            aws_secret_key: "{{ aws_secret_access_key }}"
-            security_token: "{{ aws_session_token }}"
-            region: "{{ region }}"
             key_name: "{{ key_name }}"
             security_group: "{{ security_group_ansible.group_id }}"
             image_id: "{{ image_id }}"
@@ -73,10 +62,6 @@
       block:
         - name: Get instances info - so we can use each time to get info about running instances
           ec2_instance_info:
-            aws_access_key: "{{ aws_access_key_id }}"
-            aws_secret_key: "{{ aws_secret_access_key }}"
-            security_token: "{{ aws_session_token }}"
-            region: "{{ region }}"
           register: result
 
         - name: Get EC2 Public DNS with running state.
@@ -95,7 +80,7 @@
   become_method: sudo
   gather_facts: False
   vars_files:
-    - keys.yml
+    - variables.yml
   tasks:
 
     - name: Configure EC2
