@@ -14,6 +14,7 @@ Try out some IaC tools to provision EC2 instance on AWS.
     - [Usage](#usage)
 - [Ansible](#ansible)
     - [Installation](#ansible-installation)
+    - [AWS Access and Secret Keys](#aws-access-and-secret-keys)
     - [Usage](#usage)
 
 # Workflow
@@ -36,12 +37,11 @@ $ ssh-keygen
 $ ssh -i ~/.ssh/terraformKey ec2-user@<EC2-IP>
 ```
 
-
 # Terraform
 ### Terraform Installtion
 See the official page for how to install terraform: [Install terraform](https://learn.hashicorp.com/terraform/getting-started/install.html)
 
-#### usage
+### Usage
 ```shell script
 $ terraform plan
 $ terraform apply
@@ -49,12 +49,29 @@ $ terraform apply
 
 # Ansible
 ### Ansible Installation
-* first create a file `keys.yml` and store your AWS credentials in `YAML` format.
+See the official page for how to install: [Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+
+### Ansible Configuration 
+* Set EDITOR for Ansible-Vault `export EDITOR=vim` (or any other editor)
+* edit ansible.cfg and set `host_key_checking = False` to avoid host key checking otherwise Ansible cannot connect to EC2 via SSH.
+
+### AWS Access and Secret Keys
+1. Run command below to create and encrypt content of the file, it will ask you at first for password, remember it as we need it each time we run Ansible playbook.
+    ```shell script
+    $ ansible-vault create keys.yml
+    ```
+2. copy & paste keys:
+    ```shell script
+    aws_access_key_id: <key>
+    aws_secret_access_key: <key>
+    aws_session_token: <key>
+    ansible_ssh_private_key_file: <path-to-private-key>
+    ```
 
 ### usage
+
 ```shell script
-$ ansible-playbook -i hosts ec2.yml # without tag will run just _info_ task
-$ ansible-playbook -i hosts ec2.yml --tags create_ec2,configure_ec2 
+$ ansible-playbook -i hosts ec2.yml --tags create_ec2,configure_ec2 --ask-vault-pass
 ```
 * First command will run ansible to get info about the running EC2.
 * Second command uses tags to `create` or/and `config` EC2.
