@@ -3,12 +3,14 @@
 - hosts: localhost
   connection: local
   gather_facts: False
+  vars_files:
+    - keys.yml
 
   vars:
     key_name: ansibleKey
     region: us-east-1
-    image: ami-0915e09cc7ceee3ab
-    id: "hello-ansible"
+    image_id: ami-0915e09cc7ceee3ab
+    tag_name: "hello-ansible"
     security_group: "sg_ansible"
 
   tasks:
@@ -16,33 +18,43 @@
     - name: Facts
       block:
 
-        - name: Get instances facts
+        - name: Get instances facts - so we can use each time to get info about running instances
           ec2_instance_info:
+            aws_access_key: "{{ aws_access_key_id }}"
+            aws_secret_key: "{{ aws_secret_access_key }}"
+            security_token: "{{ aws_session_token }}"
             region: "{{ region }}"
           register: result
 
-        - name: Instances ID
+        - name: get Instances info for ec2 provisioned by Ansible, if it is existed.
           debug:
-            msg: "ID: {{ item.instance_id }} - State: {{ item.state.name }} - Public IP: {{ item.public_dns_name }}"
+            msg: "ID: {{ item.tags.Name }} - State: {{ item.state.name }} - Public IP: {{ item.public_dns_name }}"
           loop: "{{ result.instances }}"
+          when: item.tags.Name == "{{ tag_name }}"
 
       tags: always
 
 
-    - name: Provisioning EC2 instances
+    - name: Provisioning EC2 instance
       block:
 
         - name: Upload public key to AWS
           ec2_key:
+            aws_access_key: "{{ aws_access_key_id }}"
+            aws_secret_key: "{{ aws_secret_access_key }}"
+            security_token: "{{ aws_session_token }}"
+            region: "{{ region }}"
             name: "{{ key_name }}"
             key_material: "{{ lookup('file', '~/.ssh/{{ key_name }}.pub') }}"
-            region: "{{ region }}"
 
         - name: Create security group
           ec2_group:
+            aws_access_key: "{{ aws_access_key_id }}"
+            aws_secret_key: "{{ aws_secret_access_key }}"
+            security_token: "{{ aws_session_token }}" # remove it if you do not have session_token
+            region: "{{ region }}"
             name: "{{ security_group }}"
             description: "Ansible SG"
-            region: "{{ region }}"
             rules:
               - proto: tcp
                 ports:
@@ -62,18 +74,36 @@
                 rule_desc: allow all outgoing traffic
           register: security_group_ansible
 
-        - name: Provision instance(s)
-          ec2:
-            key_name: "{{ key_name }}"
-            id: "{{ id }}"
-            group_id: "{{ security_group_ansible.group_id }}"
-            image: "{{ image }}"
-            instance_type: t2.micro
+        - name: Provision EC2 instance
+          ec2_instance:
+            aws_access_key: "{{ aws_access_key_id }}"
+            aws_secret_key: "{{ aws_secret_access_key }}"
+            security_token: "{{ aws_session_token }}"
             region: "{{ region }}"
-            assign_public_ip: true
-            wait: true
+            key_name: "{{ key_name }}"
+            security_group: "{{ security_group_ansible.group_id }}"
+            image_id: "{{ image_id }}"
+            instance_type: t2.micro
+            name: "{{ tag_name }}"
+          register: ec2
+
+        - name: Add the newly created EC2 IP to host (Ansible cache) for configure_ec2 part
+          add_host:
+            name: "{{ item.public_dns_name }}"
+            groups: nginx
+          with_items: "{{ ec2.instances }}"
 
       tags: ['never', 'create_ec2'] # https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html
+
+- hosts: nginx
+  become: yes
+  remote_user: ec2-user
+  become_user: root
+  become_method: sudo
+  gather_facts: False
+  vars_files:
+    - keys.yml
+  tasks:
 
     - name: Configure EC2
       block:
@@ -86,19 +116,23 @@
 
         - name: Install docker
           yum:
-            name: docker
+            name:
+              - docker
             state: installed
+
+        - name: docker-py
+          shell: pip install docker-py
 
         - name: Start docker service
           service:
             name: docker
             state: restarted
 
-        - name: Re-create a redis container
+        - name: Create Ngnix container
           docker_container:
             name: hello
-            image: rnginx
-            state: present
+            image: nginx
+            state: started
             ports:
               - "80:80"
 
