@@ -70,7 +70,7 @@
             groups: nginx
           with_items: "{{ ansible_ec2.instances }}"
 
-      tags: ['never', 'configure_ec2']
+      tags: ['never', 'configure_ec2', 'app']
 
 - hosts: nginx
   become: yes
@@ -115,3 +115,16 @@
               - "{{ host_port }}:{{ container_port }}"
 
       tags: ['never', 'configure_ec2']
+
+    - name: Re-Running app
+      block:
+
+        - name: Recreating Ngnix container
+          docker_container:
+            name: "{{ container_name }}"
+            image: "{{ image_name }}"
+            state: started
+            ports:
+              - "{{ host_port }}:{{ container_port }}"
+
+      tags: ['never', 'app']
