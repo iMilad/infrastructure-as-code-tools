@@ -127,4 +127,18 @@
             ports:
               - "{{ host_port }}:{{ container_port }}"
 
+        - name: Get infos on container
+          docker_container_info:
+            name: "{{ container_name }}"
+          register: result
+
+        - name: Does container exist?
+          debug:
+            msg: "The container {{ 'exists' if result.exists else 'does not exist' }}"
+
+        - name: Print the status of the container
+          debug:
+            msg: "The container status is {{ result.container.State.Status | to_yaml }}"
+          when: result.exists
+
       tags: ['never', 'app']
