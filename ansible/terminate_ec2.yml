@@ -20,4 +20,12 @@
         state: absent
       with_items: "{{ ec2.instances }}"
 
-    # TODO: remove KeyPair and Security Group
+    - name: Delete Key Pair
+      ec2_key:
+        name: "{{ key_name }}"
+        state: absent
+
+    - name: "Delete group by its id"
+      ec2_group:
+        name: "{{ security_group }}"
+        state: absent
