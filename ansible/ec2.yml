@@ -38,6 +38,8 @@
                 to_port: 0
                 cidr_ip: 0.0.0.0/0
                 rule_desc: allow all outgoing traffic
+            tags:
+              tool: "{{ ansible_tag }}"
           register: security_group_ansible
 
         - name: Provision EC2 instance
@@ -47,6 +49,8 @@
             image_id: "{{ image_id }}"
             instance_type: t2.micro
             name: "{{ ec2_name }}"
+            tags:
+              tool: "{{ ansible_tag }}"
           register: ec2
 
       tags: ['never', 'create_ec2'] # https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html
