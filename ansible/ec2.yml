@@ -108,10 +108,10 @@
 
         - name: Create Ngnix container
           docker_container:
-            name: hello
-            image: nginx
+            name: "{{ container_name }}"
+            image: "{{ image_name }}"
             state: started
             ports:
-              - "80:80"
+              - "{{ host_port }}:{{ container_port }}"
 
       tags: ['never', 'configure_ec2']

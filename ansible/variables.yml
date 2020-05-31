@@ -11,3 +11,10 @@ image_id: ami-0915e09cc7ceee3ab
 
 # Security Group
 security_group: sg_ansible
+
+# App Container
+container_name: hello
+image_name: nginx
+host_port: 80
+container_port: 80
+
