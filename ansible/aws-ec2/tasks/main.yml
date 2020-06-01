@@ -1,0 +1,3 @@
+---
+# tasks file for aws-ec2
+- import_tasks: provisioning_ec2.yml
