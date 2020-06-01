@@ -1,2 +1,13 @@
----
-# vars file for aws-ec2
+# Ansible Config
+ansible_ssh_private_key_file: /Users/mk/.ssh/ansibleKey
+
+# General
+ansible_tag: ansible
+
+# EC2
+ec2_name: Hello-Ansible
+key_name: ansibleKey
+image_id: ami-0915e09cc7ceee3ab
+
+# Security Group
+security_group: sg_ansible

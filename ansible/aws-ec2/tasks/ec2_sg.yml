@@ -1,11 +1,6 @@
 ---
 
-- name: Upload public key to AWS
-  ec2_key:
-    name: "{{ key_name }}"
-    key_material: "{{ lookup('file', '~/.ssh/{{ key_name }}.pub') }}"
-
-- name: Create security group
+- name: Create security group for EC2 instance
   ec2_group:
     name: "{{ security_group }}"
     description: "Ansible SG"
@@ -29,15 +24,3 @@
     tags:
       tool: "{{ ansible_tag }}"
   register: security_group_ansible
-
-- name: Provision EC2 instance
-  ec2_instance:
-    key_name: "{{ key_name }}"
-    security_group: "{{ security_group_ansible.group_id }}"
-    image_id: "{{ image_id }}"
-    instance_type: t2.micro
-    name: "{{ ec2_name }}"
-    tags:
-      tool: "{{ ansible_tag }}"
-  register: ec2
-
