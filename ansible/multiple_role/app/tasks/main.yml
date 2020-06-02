@@ -1,0 +1,5 @@
+---
+# App
+- import_tasks: app_ec2_hosts.yml
+- import_tasks: app_configure.yml
+- import_tasks: app_install.yml

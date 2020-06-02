@@ -1,0 +1,24 @@
+---
+
+- name: Provision EC2 instance
+  ec2_instance:
+    key_name: "{{ key_name }}"
+    security_group: "{{ security_group_ansible.group_id }}"
+    image_id: "{{ image_id }}"
+    instance_type: t2.micro
+    name: "{{ ec2_name }}"
+    tags:
+      tool: "{{ ansible_tag }}"
+  register: ec2
+
+- name: path
+  debug:
+    msg: "{{ playbook_dir }}"
+
+- name: Add the newly created EC2 instance(s) to host group
+  lineinfile:
+    dest: "{{ hostpath }}"
+    insertafter: "[nginx2]"
+    line: "{{ item.public_dns_name }}"
+    state: present
+  with_items: "{{ ec2.instances }}"
