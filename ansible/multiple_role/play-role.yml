@@ -4,7 +4,7 @@
   connection: local
   gather_facts: False
   roles:
-    - role: ec2
+    - role: ec2_provisioning
 
 - hosts: nginx
   become: yes
