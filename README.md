@@ -1,4 +1,4 @@
-![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+![stability-stable](https://img.shields.io/badge/stability-stable-green.svg)
 ![last-commit](https://img.shields.io/github/last-commit/imilad/infrastructure-as-code-tools)
 
 ## Tools can be used as Infrastructure as Code
