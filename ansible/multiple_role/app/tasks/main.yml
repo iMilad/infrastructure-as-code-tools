@@ -1,4 +1,9 @@
 ---
 
-- import_tasks: app_ec2_hosts.yml
-- import_tasks: app_install.yml
+- name: Create Ngnix Container
+  docker_container:
+    name: "{{ container_name }}"
+    image: "{{ image_name }}"
+    state: started
+    ports:
+      - "{{ host_port }}:{{ container_port }}"
