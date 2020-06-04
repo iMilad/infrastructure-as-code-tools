@@ -18,6 +18,8 @@ Try out some IaC tools to provision EC2 instance on AWS.
     - [AWS Access and Secret Keys](#aws-access-and-secret-keys)
         - [Ansible Vault](#ansible-vault)
     - [Usage](#usage)
+        - [Single Playbook](#single-playbook)
+        - [Roles](#roles)
 
 # Workflow
 * Create EC2 instance
@@ -91,8 +93,21 @@ as default it will take it from `~/.aws/credentials`, another easy alternative i
 
 ### usage
 
+#### Single Playbook
+
 ```shell script
 $ ansible-playbook -i hosts ec2.yml --tags create_ec2,configure_ec2 --ask-vault-pass
 ```
 * First command will run ansible to get info about the running EC2.
 * Second command uses tags to `create` or/and `config` EC2.
+
+#### Roles
+
+```shell script
+$ ansible-playbook -i hosts play-role.yml
+```
+it will provision and configure EC2 and run Nginx docker container, after that just run below command to change or add new container.
+
+```shell script
+$ ansible-playbook -i hosts play-role.yml --tags app
+```
