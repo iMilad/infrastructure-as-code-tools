@@ -12,7 +12,7 @@
       - docker
     state: installed
 
-- name: docker-py
+- name: Install docker-py
   pip:
     name: docker-py
   notify:

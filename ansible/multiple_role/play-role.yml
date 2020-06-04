@@ -13,4 +13,13 @@
   become_method: sudo
   gather_facts: False
   roles:
+    - role: ec2_configuration
+
+- hosts: nginx
+  become: yes
+  remote_user: ec2-user
+  become_user: root
+  become_method: sudo
+  gather_facts: False
+  roles:
     - role: app
